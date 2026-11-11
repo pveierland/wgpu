@@ -3107,6 +3107,9 @@ impl dispatch::CommandEncoderInterface for WebCommandEncoder {
                     if let Some(cv) = clear_value {
                         mapped_color_attachment.set_clear_value(&cv);
                     }
+                    if let Some(slice) = ca.depth_slice {
+                        mapped_color_attachment.set_depth_slice(slice);
+                    }
                     if let Some(rt) = ca.resolve_target {
                         let resolve_target_view = &rt.inner.as_webgpu().inner;
                         mapped_color_attachment.set_resolve_target(resolve_target_view);
@@ -3176,6 +3179,10 @@ impl dispatch::CommandEncoderInterface for WebCommandEncoder {
                 writes.set_end_of_pass_write_index(index);
             }
             mapped_desc.set_timestamp_writes(&writes);
+        }
+
+        if let Some(query_set) = desc.occlusion_query_set {
+            mapped_desc.set_occlusion_query_set(&query_set.inner.as_webgpu().inner);
         }
 
         let render_pass = self.inner.begin_render_pass(&mapped_desc).unwrap();
