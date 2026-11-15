@@ -289,4 +289,20 @@ extern "C" {
     #[doc = "*This API is unstable and requires `--cfg=web_sys_unstable_apis` to be activated, as"]
     #[doc = "[described in the `wasm-bindgen` guide](https://wasm-bindgen.github.io/wasm-bindgen/web-sys/unstable-apis.html)*"]
     pub fn push_debug_group(this: &GpuComputePassEncoder, group_label: &str);
+    # [wasm_bindgen (catch , method , structural , js_class = "GPUComputePassEncoder" , js_name = setImmediates)]
+    #[doc = "The `setImmediates()` method."]
+    #[doc = ""]
+    #[doc = "[MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/GPUComputePassEncoder/setImmediates)"]
+    #[doc = ""]
+    #[doc = "*This API requires the following crate features to be activated: `GpuComputePassEncoder`*"]
+    #[doc = ""]
+    #[doc = "*This API is unstable and requires `--cfg=web_sys_unstable_apis` to be activated, as"]
+    #[doc = "[described in the `wasm-bindgen` guide](https://rustwasm.github.io/docs/wasm-bindgen/web-sys/unstable-apis.html)*"]
+    pub fn set_immediates_with_u32_and_u8_slice_and_f64_and_f64(
+        this: &GpuComputePassEncoder,
+        range_offset: u32,
+        data: &[u8],
+        data_offset: f64,
+        size: f64,
+    ) -> Result<(), JsValue>;
 }

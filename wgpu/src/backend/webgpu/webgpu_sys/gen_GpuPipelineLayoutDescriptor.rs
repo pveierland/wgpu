@@ -74,6 +74,16 @@ extern "C" {
         this: &GpuPipelineLayoutDescriptor,
         val: &::wasm_bindgen::JsValue,
     );
+    #[doc = "Get the `immediateSize` field of this object."]
+    #[doc = ""]
+    #[doc = "*This API requires the following crate features to be activated: `GpuPipelineLayoutDescriptor`*"]
+    #[wasm_bindgen(method, getter = "immediateSize")]
+    pub fn get_immediate_size(this: &GpuPipelineLayoutDescriptor) -> Option<u32>;
+    #[doc = "Change the `immediateSize` field of this object."]
+    #[doc = ""]
+    #[doc = "*This API requires the following crate features to be activated: `GpuPipelineLayoutDescriptor`*"]
+    #[wasm_bindgen(method, setter = "immediateSize")]
+    pub fn set_immediate_size(this: &GpuPipelineLayoutDescriptor, val: u32);
 }
 
 impl GpuPipelineLayoutDescriptor {
