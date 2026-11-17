@@ -878,11 +878,31 @@ fn map_wgt_limits(limits: webgpu_sys::GpuSupportedLimits) -> wgt::Limits {
     }
 }
 
+/// The PCI vendor ID of the vendor a browser names an adapter by, where it
+/// names one that has a PCI vendor ID; 0 otherwise. A browser states the
+/// vendor as a lowercase name, and may leave it empty
+/// (<https://www.w3.org/TR/webgpu/#dom-gpuadapterinfo-vendor>).
+fn map_adapter_vendor(vendor: &str) -> u32 {
+    match vendor {
+        "amd" => 0x1002,
+        "apple" => 0x106b,
+        "arm" => 0x13b5,
+        "broadcom" => 0x14e4,
+        "imagination" => 0x1010,
+        "intel" => 0x8086,
+        "microsoft" => 0x1414,
+        "nvidia" => 0x10de,
+        "qualcomm" => 0x5143,
+        "samsung" => 0x144d,
+        _ => 0,
+    }
+}
+
 fn map_adapter_info(adapter_info: &webgpu_sys::GpuAdapterInfo) -> wgt::AdapterInfo {
     // TODO(https://github.com/gfx-rs/wgpu/issues/8819): populate more fields if/when possible
     wgt::AdapterInfo {
         name: adapter_info.description().to_string(),
-        vendor: 0,
+        vendor: map_adapter_vendor(&adapter_info.vendor()),
         device: 0,
         device_type: wgt::DeviceType::Other,
         device_pci_bus_id: String::new(),
