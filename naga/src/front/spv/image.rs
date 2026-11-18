@@ -401,8 +401,14 @@ impl<I: Iterator<Item = u32>> super::Frontend<I> {
                 spirv::ImageOperands::SAMPLE => {
                     let sample_expr = self.next()?;
                     let sample_lexp = self.lookup_expression.lookup(sample_expr)?;
-                    let sample_handle =
-                        self.get_expr_handle(sample_expr, sample_lexp, ctx, emitter, block, body_idx);
+                    let sample_handle = self.get_expr_handle(
+                        sample_expr,
+                        sample_lexp,
+                        ctx,
+                        emitter,
+                        block,
+                        body_idx,
+                    );
                     sample = Some(sample_handle);
                     words_left -= 1;
                 }
