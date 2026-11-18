@@ -1485,7 +1485,10 @@ impl<I: Iterator<Item = u32>> Frontend<I> {
             self.get_exp_and_base_ty_handles(pointer_id, ctx, emitter, block, body_idx)?;
 
         log::trace!("\t\t\tlooking up value expr {value_id:?}");
-        let v_lexp_handle = self.lookup_expression.lookup(value_id)?.handle;
+        let v_lexp_handle = {
+            let lexp = self.lookup_expression.lookup(value_id)?;
+            self.get_expr_handle(value_id, lexp, ctx, emitter, block, body_idx)
+        };
 
         block.extend(emitter.finish(ctx.expressions));
         // Create an expression for our result

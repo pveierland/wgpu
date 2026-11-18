@@ -1,0 +1,45 @@
+; An atomic whose value is a phi of a loop header, used after the loop: the
+; header dominates the loop's merge block, so the value is in scope there.
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %id
+               OpExecutionMode %main LocalSize 64 1 1
+               OpDecorate %id BuiltIn LocalInvocationId
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+       %bool = OpTypeBool
+     %v3uint = OpTypeVector %uint 3
+%_ptr_Input_v3uint = OpTypePointer Input %v3uint
+%_ptr_Input_uint = OpTypePointer Input %uint
+%_ptr_Workgroup_uint = OpTypePointer Workgroup %uint
+     %uint_0 = OpConstant %uint 0
+     %uint_1 = OpConstant %uint 1
+     %uint_2 = OpConstant %uint 2
+     %uint_8 = OpConstant %uint 8
+   %uint_264 = OpConstant %uint 264
+         %id = OpVariable %_ptr_Input_v3uint Input
+      %total = OpVariable %_ptr_Workgroup_uint Workgroup
+       %main = OpFunction %void None %3
+      %entry = OpLabel
+        %idx = OpAccessChain %_ptr_Input_uint %id %uint_0
+        %tid = OpLoad %uint %idx
+               OpBranch %header
+     %header = OpLabel
+          %i = OpPhi %uint %uint_0 %entry %next %continue
+      %count = OpPhi %uint %uint_0 %entry %counted %continue
+       %more = OpULessThan %bool %i %uint_8
+               OpLoopMerge %merge %continue None
+               OpBranchConditional %more %body %merge
+       %body = OpLabel
+        %odd = OpBitwiseAnd %uint %tid %uint_1
+    %counted = OpIAdd %uint %count %odd
+               OpBranch %continue
+   %continue = OpLabel
+       %next = OpIAdd %uint %i %uint_1
+               OpBranch %header
+      %merge = OpLabel
+               OpControlBarrier %uint_2 %uint_2 %uint_264
+      %added = OpAtomicIAdd %uint %total %uint_2 %uint_0 %count
+               OpReturn
+               OpFunctionEnd
