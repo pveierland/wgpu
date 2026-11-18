@@ -1780,11 +1780,27 @@ impl<I: Iterator<Item = u32>> Frontend<I> {
 
                     let arg_count = fun.argument_count();
                     inst.expect(base_wc + arg_count as u16)?;
-                    let arg = {
+                    let (arg, arg_type_id) = {
                         let arg_id = self.next()?;
                         let lexp = self.lookup_expression.lookup(arg_id)?;
-                        get_expr_handle!(arg_id, lexp)
+                        let arg_type_id = lexp.type_id;
+                        (get_expr_handle!(arg_id, lexp), arg_type_id)
                     };
+                    // `ModfStruct` and `FrexpStruct` return the predeclared
+                    // structure the typifier looks the result's type up as.
+                    if matches!(fun, Mf::Modf | Mf::Frexp) {
+                        let arg_ty = self.lookup_type.lookup(arg_type_id)?.handle;
+                        let (size, scalar) = match ctx.module.types[arg_ty].inner {
+                            crate::TypeInner::Scalar(scalar) => (None, scalar),
+                            crate::TypeInner::Vector { size, scalar } => (Some(size), scalar),
+                            _ => return Err(Error::UnsupportedType(arg_ty)),
+                        };
+                        ctx.module.generate_predeclared_type(if fun == Mf::Modf {
+                            crate::PredeclaredType::ModfResult { size, scalar }
+                        } else {
+                            crate::PredeclaredType::FrexpResult { size, scalar }
+                        });
+                    }
                     let arg1 = if arg_count > 1 {
                         let arg_id = self.next()?;
                         let lexp = self.lookup_expression.lookup(arg_id)?;

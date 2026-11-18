@@ -1,0 +1,53 @@
+; ModfStruct and FrexpStruct of a scalar and a vector, each member read back:
+; their results are the predeclared structures WGSL's modf and frexp return.
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint GLCompute %main "main" %out
+               OpExecutionMode %main LocalSize 1 1 1
+               OpDecorate %block Block
+               OpMemberDecorate %block 0 Offset 0
+               OpDecorate %out DescriptorSet 0
+               OpDecorate %out Binding 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+        %int = OpTypeInt 32 1
+    %v2float = OpTypeVector %float 2
+      %v2int = OpTypeVector %int 2
+      %block = OpTypeStruct %float
+%_ptr_StorageBuffer_block = OpTypePointer StorageBuffer %block
+%_ptr_StorageBuffer_float = OpTypePointer StorageBuffer %float
+       %uint = OpTypeInt 32 0
+     %uint_0 = OpConstant %uint 0
+     %modf_s = OpTypeStruct %float %float
+    %modf_v2 = OpTypeStruct %v2float %v2float
+    %frexp_s = OpTypeStruct %float %int
+   %frexp_v2 = OpTypeStruct %v2float %v2int
+  %float_2_5 = OpConstant %float 2.5
+       %pair = OpConstantComposite %v2float %float_2_5 %float_2_5
+        %out = OpVariable %_ptr_StorageBuffer_block StorageBuffer
+       %main = OpFunction %void None %3
+      %entry = OpLabel
+         %ms = OpExtInst %modf_s %1 ModfStruct %float_2_5
+         %mv = OpExtInst %modf_v2 %1 ModfStruct %pair
+         %fs = OpExtInst %frexp_s %1 FrexpStruct %float_2_5
+         %fv = OpExtInst %frexp_v2 %1 FrexpStruct %pair
+   %ms_fract = OpCompositeExtract %float %ms 0
+   %ms_whole = OpCompositeExtract %float %ms 1
+   %mv_whole = OpCompositeExtract %v2float %mv 1
+  %mv_whole0 = OpCompositeExtract %float %mv_whole 0
+   %fs_fract = OpCompositeExtract %float %fs 0
+     %fs_exp = OpCompositeExtract %int %fs 1
+     %fv_exp = OpCompositeExtract %v2int %fv 1
+    %fv_exp0 = OpCompositeExtract %int %fv_exp 0
+       %sum0 = OpFAdd %float %ms_fract %ms_whole
+       %sum1 = OpFAdd %float %sum0 %mv_whole0
+       %sum2 = OpFAdd %float %sum1 %fs_fract
+       %exps = OpIAdd %int %fs_exp %fv_exp0
+     %exps_f = OpConvertSToF %float %exps
+       %sum3 = OpFAdd %float %sum2 %exps_f
+          %p = OpAccessChain %_ptr_StorageBuffer_float %out %uint_0
+               OpStore %p %sum3
+               OpReturn
+               OpFunctionEnd
