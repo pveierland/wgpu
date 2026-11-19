@@ -52,6 +52,8 @@ macro_rules! trait_alias {
 trait_alias!(RequestAdapterFuture: Future<Output = Result<DispatchAdapter, wgt::RequestAdapterError>> + WasmNotSend + 'static);
 trait_alias!(RequestDeviceFuture: Future<Output = Result<(DispatchDevice, DispatchQueue), crate::RequestDeviceError>> + WasmNotSend + 'static);
 trait_alias!(PopErrorScopeFuture: Future<Output = Option<crate::Error>> + WasmNotSend + 'static);
+trait_alias!(CreateRenderPipelineFuture: Future<Output = Result<DispatchRenderPipeline, crate::Error>> + WasmNotSend + 'static);
+trait_alias!(CreateComputePipelineFuture: Future<Output = Result<DispatchComputePipeline, crate::Error>> + WasmNotSend + 'static);
 trait_alias!(ShaderCompilationInfoFuture: Future<Output = crate::CompilationInfo> + WasmNotSend + 'static);
 trait_alias!(EnumerateAdapterFuture: Future<Output = Vec<DispatchAdapter>> + WasmNotSend + 'static);
 
@@ -176,6 +178,24 @@ pub trait DeviceInterface: CommonTraits {
         &self,
         desc: &crate::ComputePipelineDescriptor<'_>,
     ) -> DispatchComputePipeline;
+    /// Create a render pipeline, answering once the backend has created it
+    /// or refused it. A backend with no asynchronous creation creates it as
+    /// [`Self::create_render_pipeline`] does, reporting an error as that
+    /// does, and answers at once.
+    fn create_render_pipeline_async(
+        &self,
+        desc: &crate::RenderPipelineDescriptor<'_>,
+    ) -> Pin<Box<dyn CreateRenderPipelineFuture>> {
+        Box::pin(core::future::ready(Ok(self.create_render_pipeline(desc))))
+    }
+    /// Create a compute pipeline, answering once the backend has created it
+    /// or refused it, as [`Self::create_render_pipeline_async`] does.
+    fn create_compute_pipeline_async(
+        &self,
+        desc: &crate::ComputePipelineDescriptor<'_>,
+    ) -> Pin<Box<dyn CreateComputePipelineFuture>> {
+        Box::pin(core::future::ready(Ok(self.create_compute_pipeline(desc))))
+    }
     unsafe fn create_pipeline_cache(
         &self,
         desc: &crate::PipelineCacheDescriptor<'_>,

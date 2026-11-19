@@ -272,6 +272,32 @@ impl Device {
         ComputePipeline { inner: pipeline }
     }
 
+    /// Creates a [`RenderPipeline`], answering once it is created.
+    ///
+    /// On WebGPU this is `createRenderPipelineAsync`: the browser may compile
+    /// the pipeline off its own thread and beside others, and a pipeline it
+    /// refuses answers with the error it was refused with rather than
+    /// raising it in an error scope. Elsewhere the pipeline is created as
+    /// [`Device::create_render_pipeline`] creates it, an error is reported
+    /// as that reports it, and the future answers at once.
+    pub fn create_render_pipeline_async(
+        &self,
+        desc: &RenderPipelineDescriptor<'_>,
+    ) -> impl Future<Output = Result<RenderPipeline, Error>> + WasmNotSend + use<> {
+        let creating = self.inner.create_render_pipeline_async(desc);
+        async move { creating.await.map(|inner| RenderPipeline { inner }) }
+    }
+
+    /// Creates a [`ComputePipeline`], answering once it is created, as
+    /// [`Device::create_render_pipeline_async`] does.
+    pub fn create_compute_pipeline_async(
+        &self,
+        desc: &ComputePipelineDescriptor<'_>,
+    ) -> impl Future<Output = Result<ComputePipeline, Error>> + WasmNotSend + use<> {
+        let creating = self.inner.create_compute_pipeline_async(desc);
+        async move { creating.await.map(|inner| ComputePipeline { inner }) }
+    }
+
     /// Creates a [`Buffer`].
     #[must_use]
     pub fn create_buffer(&self, desc: &BufferDescriptor<'_>) -> Buffer {
