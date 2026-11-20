@@ -898,6 +898,18 @@ fn map_adapter_vendor(vendor: &str) -> u32 {
     }
 }
 
+/// The number of invocations the adapter info's member `name` states, or
+/// `fallback` where the browser states none. A browser granting subgroups
+/// states the least and the most a subgroup holds as `subgroupMinSize` and
+/// `subgroupMaxSize` (<https://www.w3.org/TR/webgpu/#dom-gpuadapterinfo-subgroupminsize>).
+fn map_subgroup_size(adapter_info: &webgpu_sys::GpuAdapterInfo, name: &str, fallback: u32) -> u32 {
+    js_sys::Reflect::get(adapter_info, &wasm_bindgen::JsValue::from_str(name))
+        .ok()
+        .and_then(|size| size.as_f64())
+        .filter(|size| size.is_finite() && *size >= 1.0 && *size <= f64::from(u32::MAX))
+        .map_or(fallback, |size| size as u32)
+}
+
 fn map_adapter_info(adapter_info: &webgpu_sys::GpuAdapterInfo) -> wgt::AdapterInfo {
     // TODO(https://github.com/gfx-rs/wgpu/issues/8819): populate more fields if/when possible
     wgt::AdapterInfo {
@@ -909,8 +921,16 @@ fn map_adapter_info(adapter_info: &webgpu_sys::GpuAdapterInfo) -> wgt::AdapterIn
         driver: String::new(),
         driver_info: String::new(),
         backend: wgt::Backend::BrowserWebGpu,
-        subgroup_min_size: wgt::MINIMUM_SUBGROUP_MIN_SIZE,
-        subgroup_max_size: wgt::MAXIMUM_SUBGROUP_MAX_SIZE,
+        subgroup_min_size: map_subgroup_size(
+            adapter_info,
+            "subgroupMinSize",
+            wgt::MINIMUM_SUBGROUP_MIN_SIZE,
+        ),
+        subgroup_max_size: map_subgroup_size(
+            adapter_info,
+            "subgroupMaxSize",
+            wgt::MAXIMUM_SUBGROUP_MAX_SIZE,
+        ),
         transient_saves_memory: false,
     }
 }
