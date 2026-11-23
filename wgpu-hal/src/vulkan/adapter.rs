@@ -3082,8 +3082,17 @@ impl crate::Adapter for super::Adapter {
     }
 }
 
+/// Whether the device holds what `TEXTURE_FORMAT_16BIT_NORM` guarantees,
+/// which is WebGPU's "texture-formats-tier1" (see
+/// `TextureFormat::guaranteed_format_features`): the six 16-bit normalized
+/// formats sampled, stored and rendered into with blending, and the 8-bit
+/// signed normalized formats rendered into with blending. Every format a
+/// device renders into it multisamples four times (Vulkan's
+/// `framebufferColorSampleCounts`).
 fn is_format_16bit_norm_supported(instance: &ash::Instance, phd: vk::PhysicalDevice) -> bool {
-    [
+    let rendered =
+        vk::FormatFeatureFlags::COLOR_ATTACHMENT | vk::FormatFeatureFlags::COLOR_ATTACHMENT_BLEND;
+    let sixteen = [
         vk::Format::R16_UNORM,
         vk::Format::R16_SNORM,
         vk::Format::R16G16_UNORM,
@@ -3101,9 +3110,18 @@ fn is_format_16bit_norm_supported(instance: &ash::Instance, phd: vk::PhysicalDev
             vk::FormatFeatureFlags::SAMPLED_IMAGE
                 | vk::FormatFeatureFlags::STORAGE_IMAGE
                 | vk::FormatFeatureFlags::TRANSFER_SRC
-                | vk::FormatFeatureFlags::TRANSFER_DST,
+                | vk::FormatFeatureFlags::TRANSFER_DST
+                | rendered,
         )
-    })
+    });
+    let eight = [
+        vk::Format::R8_SNORM,
+        vk::Format::R8G8_SNORM,
+        vk::Format::R8G8B8A8_SNORM,
+    ]
+    .into_iter()
+    .all(|format| supports_format(instance, phd, format, vk::ImageTiling::OPTIMAL, rendered));
+    sixteen && eight
 }
 
 fn is_float32_filterable_supported(instance: &ash::Instance, phd: vk::PhysicalDevice) -> bool {

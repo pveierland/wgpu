@@ -639,6 +639,12 @@ bitflags_array! {
 
         /// Enables normalized `16-bit` texture formats.
         ///
+        /// Where it is enabled, the 16-bit normalized formats are also
+        /// renderable, blendable, multisampled and resolved, and so are the
+        /// 8-bit signed normalized formats, as WebGPU's
+        /// "texture-formats-tier1" guarantees, which this feature is on the
+        /// web.
+        ///
         /// Supported platforms:
         /// - Vulkan
         /// - DX12
