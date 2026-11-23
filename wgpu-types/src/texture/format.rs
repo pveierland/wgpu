@@ -937,6 +937,26 @@ impl TextureFormat {
             } else {
                 (msaa, basic)
             };
+        // WebGPU's "texture-formats-tier1", which a device holding the 16-bit
+        // normalized formats on the web was granted: those formats and the
+        // 8-bit signed normalized ones are renderable, blendable,
+        // multisampled and resolved.
+        let tier1 = device_features.contains(Features::TEXTURE_FORMAT_16BIT_NORM);
+        let (norm16_f, norm16) = if tier1 {
+            (msaa_resolve | s_ro_wo, attachment | storage)
+        } else {
+            (msaa | s_ro_wo, storage)
+        };
+        let (snorm8_f, snorm8) = if tier1 {
+            (msaa_resolve, attachment)
+        } else {
+            (none, basic)
+        };
+        let (rgba8snorm_f, rgba8snorm) = if tier1 {
+            (msaa_resolve | s_ro_wo, attachment | storage)
+        } else {
+            (s_ro_wo, storage)
+        };
         let (bgra8unorm_f, bgra8unorm) = if device_features.contains(Features::BGRA8UNORM_STORAGE) {
             (
                 msaa_resolve | TextureFormatFeatureFlags::STORAGE_WRITE_ONLY,
@@ -952,14 +972,14 @@ impl TextureFormat {
             allowed_usages,
         ) = match *self {
             Self::R8Unorm =>              (msaa_resolve, attachment),
-            Self::R8Snorm =>              (        none,      basic),
+            Self::R8Snorm =>              (    snorm8_f,     snorm8),
             Self::R8Uint =>               (        msaa, attachment),
             Self::R8Sint =>               (        msaa, attachment),
             Self::R16Uint =>              (        msaa, attachment),
             Self::R16Sint =>              (        msaa, attachment),
             Self::R16Float =>             (msaa_resolve, attachment),
             Self::Rg8Unorm =>             (msaa_resolve, attachment),
-            Self::Rg8Snorm =>             (        none,      basic),
+            Self::Rg8Snorm =>             (    snorm8_f,     snorm8),
             Self::Rg8Uint =>              (        msaa, attachment),
             Self::Rg8Sint =>              (        msaa, attachment),
             Self::R32Uint =>              (       s_all,     atomic),
@@ -970,7 +990,7 @@ impl TextureFormat {
             Self::Rg16Float =>            (msaa_resolve, attachment),
             Self::Rgba8Unorm =>           (msaa_resolve | s_ro_wo,  all_flags),
             Self::Rgba8UnormSrgb =>       (msaa_resolve, attachment),
-            Self::Rgba8Snorm =>           (     s_ro_wo,    storage),
+            Self::Rgba8Snorm =>           (rgba8snorm_f, rgba8snorm),
             Self::Rgba8Uint =>            (        msaa | s_ro_wo,  all_flags),
             Self::Rgba8Sint =>            (        msaa | s_ro_wo,  all_flags),
             Self::Bgra8Unorm =>           (bgra8unorm_f, bgra8unorm),
@@ -1001,12 +1021,12 @@ impl TextureFormat {
             Self::NV12 =>                 (        none,    binding),
             Self::P010 =>                 (        none,    binding),
 
-            Self::R16Unorm =>             (        msaa | s_ro_wo,    storage),
-            Self::R16Snorm =>             (        msaa | s_ro_wo,    storage),
-            Self::Rg16Unorm =>            (        msaa | s_ro_wo,    storage),
-            Self::Rg16Snorm =>            (        msaa | s_ro_wo,    storage),
-            Self::Rgba16Unorm =>          (        msaa | s_ro_wo,    storage),
-            Self::Rgba16Snorm =>          (        msaa | s_ro_wo,    storage),
+            Self::R16Unorm =>             (    norm16_f,     norm16),
+            Self::R16Snorm =>             (    norm16_f,     norm16),
+            Self::Rg16Unorm =>            (    norm16_f,     norm16),
+            Self::Rg16Snorm =>            (    norm16_f,     norm16),
+            Self::Rgba16Unorm =>          (    norm16_f,     norm16),
+            Self::Rgba16Snorm =>          (    norm16_f,     norm16),
 
             Self::Rgb9e5Ufloat =>         (        none,      basic),
 

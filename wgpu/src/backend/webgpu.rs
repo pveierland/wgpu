@@ -211,6 +211,9 @@ fn map_texture_format(texture_format: wgt::TextureFormat) -> webgpu_sys::GpuText
         TextureFormat::R8Uint => tf::R8uint,
         TextureFormat::R8Sint => tf::R8sint,
         // 16-bit formats
+        // "texture-formats-tier1" feature
+        TextureFormat::R16Unorm => tf::R16unorm,
+        TextureFormat::R16Snorm => tf::R16snorm,
         TextureFormat::R16Uint => tf::R16uint,
         TextureFormat::R16Sint => tf::R16sint,
         TextureFormat::R16Float => tf::R16float,
@@ -222,6 +225,9 @@ fn map_texture_format(texture_format: wgt::TextureFormat) -> webgpu_sys::GpuText
         TextureFormat::R32Uint => tf::R32uint,
         TextureFormat::R32Sint => tf::R32sint,
         TextureFormat::R32Float => tf::R32float,
+        // "texture-formats-tier1" feature
+        TextureFormat::Rg16Unorm => tf::Rg16unorm,
+        TextureFormat::Rg16Snorm => tf::Rg16snorm,
         TextureFormat::Rg16Uint => tf::Rg16uint,
         TextureFormat::Rg16Sint => tf::Rg16sint,
         TextureFormat::Rg16Float => tf::Rg16float,
@@ -241,6 +247,9 @@ fn map_texture_format(texture_format: wgt::TextureFormat) -> webgpu_sys::GpuText
         TextureFormat::Rg32Uint => tf::Rg32uint,
         TextureFormat::Rg32Sint => tf::Rg32sint,
         TextureFormat::Rg32Float => tf::Rg32float,
+        // "texture-formats-tier1" feature
+        TextureFormat::Rgba16Unorm => tf::Rgba16unorm,
+        TextureFormat::Rgba16Snorm => tf::Rgba16snorm,
         TextureFormat::Rgba16Uint => tf::Rgba16uint,
         TextureFormat::Rgba16Sint => tf::Rgba16sint,
         TextureFormat::Rgba16Float => tf::Rgba16float,
@@ -711,7 +720,7 @@ fn map_map_mode(mode: crate::MapMode) -> u32 {
     }
 }
 
-const FEATURES_MAPPING: [(wgt::Features, webgpu_sys::GpuFeatureName); 17] = [
+const FEATURES_MAPPING: [(wgt::Features, webgpu_sys::GpuFeatureName); 18] = [
     (
         wgt::Features::DEPTH_CLIP_CONTROL,
         webgpu_sys::GpuFeatureName::DepthClipControl,
@@ -779,6 +788,14 @@ const FEATURES_MAPPING: [(wgt::Features, webgpu_sys::GpuFeatureName); 17] = [
     (
         wgt::Features::SUBGROUP,
         webgpu_sys::GpuFeatureName::Subgroups,
+    ),
+    // WebGPU's "texture-formats-tier1" holds the six 16-bit normalized
+    // formats, which is what `TEXTURE_FORMAT_16BIT_NORM` enables, and makes
+    // them and the 8-bit signed normalized formats renderable, blendable and
+    // multisampled (see `TextureFormat::guaranteed_format_features`).
+    (
+        wgt::Features::TEXTURE_FORMAT_16BIT_NORM,
+        webgpu_sys::GpuFeatureName::TextureFormatsTier1,
     ),
 ];
 

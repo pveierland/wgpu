@@ -49,4 +49,5 @@ pub enum GpuFeatureName {
     ClipDistances = "clip-distances",
     DualSourceBlending = "dual-source-blending",
     Subgroups = "subgroups",
+    TextureFormatsTier1 = "texture-formats-tier1",
 }
